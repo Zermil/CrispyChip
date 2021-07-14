@@ -3,7 +3,7 @@
 Chip8 emulator in C++ with [SDL2](https://www.libsdl.org/) for rendering/drawing. If you want to
 create your own version check out [This technical reference](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM) by "Cowgod".
 
-[ROMS](https://github.com/kripod/chip8-roms)
+You can get CHIP8 roms from here: [ROMS](https://github.com/kripod/chip8-roms)
 
 ![pong](./img/pong.jpg)
 ![ibm](./img/ibm_logo.jpg)
