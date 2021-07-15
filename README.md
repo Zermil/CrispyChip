@@ -7,6 +7,7 @@ You can get CHIP8 roms from here: [ROMS](https://github.com/kripod/chip8-roms)
 
 ![pong](./img/pong.jpg)
 ![ibm](./img/ibm_logo.jpg)
+![maze](./img/maze.jpg)
 
 ## Quick Start/Instructions
 
