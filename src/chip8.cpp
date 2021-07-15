@@ -289,6 +289,7 @@ void Chip8::emulateCycle()
           break;
 
         case 0x0029: // Set I = location of sprite for digit Vx
+          // We multiply by 5 because we want the "starting index" of a sprite
           I = V[x] * 0x5;
           PC += 2;
           break;
@@ -324,7 +325,6 @@ void Chip8::emulateCycle()
     default:
       std::cerr << "Unknown opcode: " << opcode << std::endl;
   }
-
 
   // Timers, unsigned so that's why the if "guards"
   if (delay_timer > 0) {

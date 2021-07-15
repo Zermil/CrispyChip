@@ -22,7 +22,7 @@ bool initializeSDL(const std::string& title, int width, int height)
     SDL_WINDOWPOS_CENTERED,
     width,
     height,
-    0
+    SDL_WINDOW_SHOWN
   );
 
   if (window == nullptr) {
@@ -71,10 +71,12 @@ int main(int argc, char* argv[])
   }
 
   const int SCALE = 16;
+
   int width = 64 * SCALE;
   int height = 32 * SCALE;
 
   SDL_Event event;
+  uint32_t pixelBuffer[2048];
 
   bool isOpen = initializeSDL("CrispyChip - CHIP8 Emulator", width, height);
 
@@ -88,13 +90,8 @@ int main(int argc, char* argv[])
     }
 
     crispy.emulateCycle();
-    
+
     if (crispy.render) {
-      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-      SDL_RenderClear(renderer);
-
-      uint32_t pixelBuffer[2048];
-
       for (int i = 0; i < 2048; ++i) {
         if (crispy.display[i]) {
           pixelBuffer[i] = 0xFFFFFFFF;
@@ -105,11 +102,11 @@ int main(int argc, char* argv[])
 
       SDL_UpdateTexture(texture, nullptr, pixelBuffer, 64 * sizeof(uint32_t));
       SDL_RenderCopy(renderer, texture, nullptr, nullptr);
-
-      SDL_RenderPresent(renderer);
+      
       crispy.render = false;
     }
-
+    
+    SDL_RenderPresent(renderer);
     SDL_Delay(1);
   }
 
