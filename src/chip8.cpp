@@ -5,6 +5,25 @@
 #include <ctime>
 #include "chip8.hpp"
 
+uint8_t font_sprites[80] = {
+  0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+  0x20, 0x60, 0x20, 0x20, 0x70, // 1
+  0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+  0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+  0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+  0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+  0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+  0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+  0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+  0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+  0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+  0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+  0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+  0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+  0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+  0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
+
 void Chip8::initialize() 
 {
   std::memset(keyboard, 0, sizeof(keyboard));
@@ -13,7 +32,7 @@ void Chip8::initialize()
   std::memset(memory, 0, sizeof(memory));
   std::memset(V, 0, sizeof(V));
 
-  PC = 512;
+  PC = 0x200;
   SP = 0;
   I = 0;
 
@@ -21,25 +40,6 @@ void Chip8::initialize()
   sound_timer = 0;
 
   render = true;
-
-  uint8_t font_sprites[80] = {
-    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
-    0x20, 0x60, 0x20, 0x20, 0x70, // 1
-    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
-    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
-    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
-    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
-    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
-    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
-    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
-    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
-    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
-    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
-    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
-    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
-    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-    0xF0, 0x80, 0xF0, 0x80, 0x80  // F
-  };
 
   for (int i = 0; i < 80; ++i) {
     memory[i] = font_sprites[i];
@@ -145,7 +145,7 @@ void Chip8::emulateCycle()
           break;
 
         case 0x0004: // Set V[x] += V[y], set V[0xF] = carry
-          V[0xF] = ((V[x] + V[y]) > 0xFF) ? 1 : 0;
+          V[0xF] = (V[x] + V[y] > 0xFF) ? 1 : 0;
           V[x] += V[y];
           PC += 2;
           break;
@@ -157,8 +157,8 @@ void Chip8::emulateCycle()
           break;
 
         case 0x0006: // Set V[x] = V[x] SHR 1
-          V[0xF] = (V[x] & 1); 
-          V[x] >>= 2;
+          V[0xF] = V[x] & 0x1; 
+          V[x] >>= 1;
           PC += 2;
           break;
 
@@ -169,8 +169,8 @@ void Chip8::emulateCycle()
           break;
 
         case 0x000E: // Set V[x] = V[x] SHL 1
-          V[0xF] = (V[x] >> 7);
-          V[x] <<= 2;
+          V[0xF] = V[x] >> 7;
+          V[x] <<= 1;
           PC += 2;
           break;
 
@@ -195,8 +195,8 @@ void Chip8::emulateCycle()
       PC = addr + V[0x0];
       break;
 
-    case 0xC000: // Set V[x] to random byte + kk
-      V[x] = (rand() % 0xFF) + kk;
+    case 0xC000: // Set V[x] to random byte & kk
+      V[x] = (rand() % 0xFF) & kk;
       PC += 2;
       break;
 
@@ -208,12 +208,12 @@ void Chip8::emulateCycle()
       V[0xF] = 0;
 
       for (int y = 0; y < n; ++y) {
-        pixel = memory[y + I];
+        pixel = memory[I + y];
 
         for (int x = 0; x < 8; ++x) {
           if ((pixel & (0x80 >> x)) != 0) {
-            // index = x + width*y (+ loop around)
-            int index = ((Vx + x) + (64 * (Vy + y))) % 2048;
+            // index = x + width*y (% loop around)
+            int index = ((Vx + x) + ((Vy + y) * 64)) % 2048;
 
             if (display[index] == 1) {
               V[0xF] = 1;
@@ -261,8 +261,8 @@ void Chip8::emulateCycle()
 
           for (int i = 0; i < 16; ++i) {
             if (keyboard[i] != 0) {
-              keyPress = true;
               V[x] = i;
+              keyPress = true;
             }
           }
 
@@ -284,6 +284,7 @@ void Chip8::emulateCycle()
           break;
 
         case 0x001E: // Set I = I + Vx
+          V[0xF] = (I + V[x] > 0xFFF) ? 1 : 0;
           I += V[x];
           PC += 2;
           break;
@@ -295,8 +296,8 @@ void Chip8::emulateCycle()
           break;
 
         case 0x0033: // Store BCD representation of Vx in memory locations I, I+1, and I+2
-          memory[I] = V[x] / 100;
-          memory[I + 1] = (V[x] / 10) % 10; 
+          memory[I]     = V[x] / 100;
+          memory[I + 1] = (V[x] / 10) % 10;
           memory[I + 2] = V[x] % 10;
           PC += 2;
           break;

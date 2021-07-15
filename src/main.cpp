@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 
       SDL_UpdateTexture(texture, nullptr, pixelBuffer, 64 * sizeof(uint32_t));
       SDL_RenderCopy(renderer, texture, nullptr, nullptr);
-      
+
       crispy.render = false;
     }
     
