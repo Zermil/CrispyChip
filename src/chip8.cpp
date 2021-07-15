@@ -26,24 +26,24 @@ uint8_t font_sprites[80] = {
 
 void Chip8::initialize() 
 {
-  std::memset(keyboard, 0, sizeof(keyboard));
-  std::memset(display, 0, sizeof(display));
-  std::memset(stack, 0, sizeof(stack));
-  std::memset(memory, 0, sizeof(memory));
-  std::memset(V, 0, sizeof(V));
+  memset(keyboard, 0, 16);
+  memset(display, 0, 2048);
+  memset(stack, 0, 16);
+  memset(memory, 0, 4096);
+  memset(V, 0, 16);
 
   PC = 0x200;
   SP = 0;
   I = 0;
 
+  for (int i = 0; i < 80; ++i) {
+    memory[i] = font_sprites[i];
+  }
+
   delay_timer = 0;
   sound_timer = 0;
 
   render = true;
-
-  for (int i = 0; i < 80; ++i) {
-    memory[i] = font_sprites[i];
-  }
 
   // Some instructions/opcodes need random byte
   srand(time(NULL));
@@ -55,6 +55,7 @@ void Chip8::emulateCycle()
   uint16_t opcode = memory[PC] << 8 | memory[PC + 1];
 
   uint16_t addr   = opcode & 0x0FFF;      // address, lowest 12 bits
+
   uint8_t  n      = opcode & 0x000F;      // lowest 4 bits
   uint8_t  kk     = opcode & 0x00FF;      // lowest 8 bits
   uint8_t  x      = opcode >> 8 & 0x000F; // 4 bit value, lower 4 bits of the high byte
@@ -62,16 +63,16 @@ void Chip8::emulateCycle()
   
   // OP-codes, implementations
   switch (opcode & 0xF000) {
-    case 0x000: {
+    case 0x0000: {
       switch (n) {
         case 0x0000: // Clear screen
-          std::memset(display, 0, sizeof(display));
+          memset(display, 0, 2048);
           render = true;
           PC += 2;
           break;
 
         case 0x000E: // Return from subroutine
-          SP--;
+          --SP;
           PC = stack[SP];
           PC += 2;
           break;
@@ -87,7 +88,7 @@ void Chip8::emulateCycle()
 
     case 0x2000: // Call subroutine
       stack[SP] = PC;
-      SP++;
+      ++SP;
       PC = addr;
       break;
 
@@ -192,7 +193,7 @@ void Chip8::emulateCycle()
       break;
 
     case 0xB000: // Jump to addr + V[0]
-      PC = addr + V[0x0];
+      PC = V[0x0] + addr;
       break;
 
     case 0xC000: // Set V[x] to random byte & kk
@@ -229,15 +230,15 @@ void Chip8::emulateCycle()
     } break;
 
     case 0xE000: {
-      switch (n) {
-        case 0x000E: // Skip instruction if key at V[x] is pressed
+      switch (kk) {
+        case 0x009E: // Skip instruction if key at V[x] is pressed
           if (keyboard[V[x]] != 0) {
             PC += 2;
           }
           PC += 2;
           break;
 
-        case 0x0001: // Skip instruction if key at V[x] is NOT pressed
+        case 0x00A1: // Skip instruction if key at V[x] is NOT pressed
           if (keyboard[V[x]] == 0) {
             PC += 2;
           }
@@ -303,7 +304,7 @@ void Chip8::emulateCycle()
           break;
 
         case 0x0055: // Store registers V0 through Vx in memory starting at location I 
-          for (int i = 0; i < x; ++i) {
+          for (int i = 0; i <= x; ++i) {
             memory[I + i] = V[i]; 
           }
           I += x + 1; // Staying true to the original
@@ -311,7 +312,7 @@ void Chip8::emulateCycle()
           break;
 
         case 0x0065: // Read registers V0 through Vx from memory starting at location I 
-          for (int i = 0; i < x; ++i) {
+          for (int i = 0; i <= x; ++i) {
             V[i] = memory[I + i]; 
           }
           I += x + 1; // Staying true to the original
@@ -333,7 +334,10 @@ void Chip8::emulateCycle()
   }
 
   if (sound_timer > 0) {
-    std::cout << "SOUND\n";
+    if (sound_timer == 1) {
+      std::cout << "SOUND\n";
+    }
+
     sound_timer--;
   }
 }

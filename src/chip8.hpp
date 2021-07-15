@@ -20,13 +20,13 @@ public:
   uint8_t display[64*32]; // Total = 2048
 
 private:
-  uint16_t stack[16];   // Stack, returns after subroutine
-  uint16_t I;           // I register, store memory addresses
-  uint16_t PC;          // Program counter
-
-  uint8_t memory[4096]; // 4K Memory
-  uint8_t V[16];        // Registers
-  uint8_t SP;           // Stack pointer
+  uint16_t stack[16];     // Stack, returns after subroutine
+  uint16_t I;             // I register, store memory addresses
+  uint16_t PC;            // Program counter
+  
+  uint8_t memory[4096];   // 4K Memory
+  uint8_t V[16];          // Registers
+  uint8_t SP;             // Stack pointer
   
   // Timers
   uint8_t delay_timer;
