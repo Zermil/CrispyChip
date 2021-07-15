@@ -230,15 +230,15 @@ void Chip8::emulateCycle()
     } break;
 
     case 0xE000: {
-      switch (kk) {
-        case 0x009E: // Skip instruction if key at V[x] is pressed
+      switch (n) {
+        case 0x000E: // Skip instruction if key at V[x] is pressed
           if (keyboard[V[x]] != 0) {
             PC += 2;
           }
           PC += 2;
           break;
 
-        case 0x00A1: // Skip instruction if key at V[x] is NOT pressed
+        case 0x0001: // Skip instruction if key at V[x] is NOT pressed
           if (keyboard[V[x]] == 0) {
             PC += 2;
           }
