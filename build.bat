@@ -10,4 +10,4 @@ set LIBS=-L"libs"
 
 set LINKER=-l"SDL2/SDL2" -l"SDL2/SDL2main"
 
-call %CC% %FILES% %INCLUDE% %LIBS% %FLAGS% %LINKER% -o CrispyChip
+call %CC% %FILES% %INCLUDE% %LIBS% %FLAGS% %LINKER% -o build_dir/CrispyChip

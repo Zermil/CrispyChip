@@ -21,16 +21,17 @@ To build this project you need to link SDL `.lib` and `.dll` files, if you're us
 Otherwise, you can use the provided `compile.bat` file, you can specify your compiler under the "CC"
 variable and then:
 
-### Compile
+### Compile/Build
 
 ```console
-> compile
+> build 
 ```
 
 ### Run
 
 ```console
-> CripsyChip.exe <path/to/rom>
+> cd build_dir
+> CripsyChip.exe "../roms/[ROM]" 
 ```
 
 **NOTE**: Make sure `SDL2.dll` file is in the same place as `CrispyChip.exe`
