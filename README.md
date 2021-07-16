@@ -18,4 +18,19 @@ To build this project you need to link SDL `.lib` and `.dll` files, if you're us
 - In Project->Properties->Linker->Input->Additional Dependencies | Add: `SDL2/SDL2.lib` and `SDL2/SDL2main.lib`
 - After you build your solution / project, add `SDL2.dll` to the folder containing your `.exe` file
 
-Otherwise, you need to link those files when compiling.
+Otherwise, you can use the provided `compile.bat` file, you can specify your compiler under the "CC"
+variable and then:
+
+### Compile
+
+```console
+> compile
+```
+
+### Run
+
+```console
+> CripsyChip.exe <path/to/rom>
+```
+
+**NOTE**: Make sure `SDL2.dll` file is in the same place as `CrispyChip.exe`
