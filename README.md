@@ -18,7 +18,7 @@ To build this project you need to link SDL `.lib` and `.dll` files, if you're us
 - In Project->Properties->Linker->Input->Additional Dependencies | Add: `SDL2/SDL2.lib` and `SDL2/SDL2main.lib`
 - After you build your solution / project, add `SDL2.dll` to the folder containing your `.exe` file
 
-Otherwise, you can use the provided `compile.bat` file, you can specify your compiler under the "CC"
+Otherwise, you can use the provided `build.bat` file, you can specify your compiler under the "CC"
 variable and then:
 
 ### Compile/Build
