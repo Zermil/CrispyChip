@@ -11,6 +11,6 @@ set LIBS=-L"libs"
 set LINKER=-l"SDL2/SDL2" -l"SDL2/SDL2main"
 
 if not exist build_dir mkdir build_dir
-copy "libs\SDL2\SDL2.dll" "build_dir\SDL2.dll" /Y
+if not exist "build_dir\SDL2.dll" copy "libs\SDL2\SDL2.dll" "build_dir\SDL2.dll" /Y
 
 call %CC% %FILES% %INCLUDE% %LIBS% %FLAGS% %LINKER% -o build_dir/CrispyChip
