@@ -34,4 +34,4 @@ variable and then:
 > CripsyChip.exe "../roms/[ROM]" 
 ```
 
-**NOTE**: Make sure `SDL2.dll` file is in the same place as `CrispyChip.exe`
+**NOTE**: Make sure `SDL2.dll` file is in the same place as `CrispyChip.exe` (build.bat copies `SDL2.dll` automatically)

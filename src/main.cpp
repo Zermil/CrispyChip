@@ -7,20 +7,21 @@
 
 SDL_Window* window = nullptr;
 SDL_Renderer* renderer = nullptr;
-SDL_Texture* texture = nullptr;
+SDL_Texture* texture_crispy = nullptr;
+
+Chip8 crispy;
 
 bool initializeSDL(const std::string& title, int width, int height);
-void parseMovementKeyDown(SDL_Keycode key, Chip8& cripsy);
-void parseMovementKeyUp(SDL_Keycode key, Chip8& cripsy);
+void parseMovementKeyDown(SDL_Keycode key);
+void parseMovementKeyUp(SDL_Keycode key);
 
 int main(int argc, char* argv[])
 {
   if (argc < 2) {
-    std::cerr << "Please provide ROM you want to run\n";
+    std::cerr << "Please provide a valid path to a ROM you want to run\n";
     return 1;
   }
 
-  Chip8 crispy;
   crispy.initialize();
 
   if (!crispy.loadROM(argv[1])) {
@@ -39,25 +40,25 @@ int main(int argc, char* argv[])
 
   while (isOpen) {
     crispy.emulateCycle();
-
+    
     while (SDL_PollEvent(&event)) {
       switch (event.type) {
-        case SDL_QUIT:
+      case SDL_QUIT:
+        isOpen = false;
+        break;
+      case SDL_KEYDOWN:
+        if (event.key.keysym.sym == SDLK_ESCAPE) {
           isOpen = false;
-          break;
-        case SDL_KEYDOWN: {
-          if (event.key.keysym.sym == SDLK_ESCAPE) {
-            isOpen = false;
-          } else {
-            parseMovementKeyDown(event.key.keysym.sym, crispy);
-          }
-        } break;
-        case SDL_KEYUP:
-          parseMovementKeyUp(event.key.keysym.sym, crispy);
-          break;
+        } else {
+          parseMovementKeyDown(event.key.keysym.sym);
+        }
+        break;
+      case SDL_KEYUP:
+        parseMovementKeyUp(event.key.keysym.sym);
+        break;
       }
     }
-
+    
     if (crispy.render) {
       for (int i = 0; i < 2048; ++i) {
         if (crispy.display[i]) {
@@ -67,18 +68,18 @@ int main(int argc, char* argv[])
         }
       }
 
-      SDL_UpdateTexture(texture, nullptr, pixelBuffer, 64 * sizeof(uint32_t));
-      SDL_RenderCopy(renderer, texture, nullptr, nullptr);
+      SDL_UpdateTexture(texture_crispy, nullptr, pixelBuffer, 64 * sizeof(uint32_t));
+      SDL_RenderCopy(renderer, texture_crispy, nullptr, nullptr);
 
       crispy.render = false;
     }
-    
+
     SDL_RenderPresent(renderer);
     SDL_Delay(1);
   }
 
   // Clean up
-  SDL_DestroyTexture(texture);
+  SDL_DestroyTexture(texture_crispy);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
   SDL_Quit();
@@ -118,14 +119,14 @@ bool initializeSDL(const std::string& title, int width, int height)
     return false;
   }
 
-  texture = SDL_CreateTexture(
+  texture_crispy = SDL_CreateTexture(
     renderer,
     SDL_PIXELFORMAT_RGBA8888,
     SDL_TEXTUREACCESS_STREAMING,
     64, 32
   );
 
-  if (texture == nullptr) {
+  if (texture_crispy == nullptr) {
     std::cerr << "Failed to initialize SDL Texture\n";
     return false;
   }
@@ -133,7 +134,7 @@ bool initializeSDL(const std::string& title, int width, int height)
   return true;
 }
 
-void parseMovementKeyDown(SDL_Keycode key, Chip8& crispy)
+void parseMovementKeyDown(SDL_Keycode key)
 {
   switch (key) {
     case SDLK_1:
@@ -149,7 +150,6 @@ void parseMovementKeyDown(SDL_Keycode key, Chip8& crispy)
       crispy.keyboard[0xC] = 1;
       break;
 
-
     case SDLK_q:
       crispy.keyboard[0x4] = 1;
       break;
@@ -163,7 +163,6 @@ void parseMovementKeyDown(SDL_Keycode key, Chip8& crispy)
       crispy.keyboard[0xD] = 1;
       break;
 
-
     case SDLK_a:
       crispy.keyboard[0x7] = 1;
       break;
@@ -176,7 +175,6 @@ void parseMovementKeyDown(SDL_Keycode key, Chip8& crispy)
     case SDLK_f:
       crispy.keyboard[0xE] = 1;
       break;
-
 
     case SDLK_z:
       crispy.keyboard[0xA] = 1;
@@ -193,7 +191,7 @@ void parseMovementKeyDown(SDL_Keycode key, Chip8& crispy)
   }
 }
 
-void parseMovementKeyUp(SDL_Keycode key, Chip8& crispy)
+void parseMovementKeyUp(SDL_Keycode key)
 {
   switch (key) {
     case SDLK_1:
@@ -209,7 +207,6 @@ void parseMovementKeyUp(SDL_Keycode key, Chip8& crispy)
       crispy.keyboard[0xC] = 0;
       break;
 
-
     case SDLK_q:
       crispy.keyboard[0x4] = 0;
       break;
@@ -223,7 +220,6 @@ void parseMovementKeyUp(SDL_Keycode key, Chip8& crispy)
       crispy.keyboard[0xD] = 0;
       break;
 
-
     case SDLK_a:
       crispy.keyboard[0x7] = 0;
       break;
@@ -236,7 +232,6 @@ void parseMovementKeyUp(SDL_Keycode key, Chip8& crispy)
     case SDLK_f:
       crispy.keyboard[0xE] = 0;
       break;
-
 
     case SDLK_z:
       crispy.keyboard[0xA] = 0;
