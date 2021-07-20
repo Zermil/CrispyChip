@@ -26,7 +26,6 @@ const std::string ROMS[4] = {
 
 SDL_Rect selector = { (WIDTH / 4) - 150, (HEIGHT / 4) - 80, (WIDTH / 2) + 300, 80 };
 
-bool emulation = true;
 int index = 0;
 
 Chip8 crispy;
@@ -40,6 +39,8 @@ void renderEmulation();
 
 int main(int argc, char* argv[])
 {
+  bool emulation = true;
+  
   if (argc > 1) {
     crispy.initialize();
 
