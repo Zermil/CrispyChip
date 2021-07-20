@@ -3,85 +3,128 @@
 #include <SDL2/SDL.h>
 #undef main
 
+#include <SDL2/SDL_ttf.h>
 #include "chip8.hpp"
 
 SDL_Window* window = nullptr;
 SDL_Renderer* renderer = nullptr;
 SDL_Texture* texture_crispy = nullptr;
+TTF_Font* font = nullptr;
+
+const int FONT_SIZE = 30;
+
+const int SCALE = 16;
+const int WIDTH = 64 * SCALE;
+const int HEIGHT = 32 * SCALE;
+
+const std::string ROMS[4] = {
+  "../roms/IBM Logo.ch8",
+  "../roms/Maze [David Winter, 199x].ch8",
+  "../roms/Sierpinski [Sergey Naydenov, 2010].ch8",
+  "../roms/Pong [Paul Vervalin, 1990].ch8"
+};
+
+SDL_Rect selector = { (WIDTH / 4) - 150, (HEIGHT / 4) - 80, (WIDTH / 2) + 300, 80 };
+
+bool emulation = true;
+int index = 0;
 
 Chip8 crispy;
 
 bool initializeSDL(const std::string& title, int width, int height);
+void displayTextAt(int y, const std::string& msg_text, SDL_Color color);
 void parseMovementKeyDown(SDL_Keycode key);
 void parseMovementKeyUp(SDL_Keycode key);
+void renderMenu();
+void renderEmulation();
 
 int main(int argc, char* argv[])
 {
-  if (argc < 2) {
-    std::cerr << "Please provide a valid path to a ROM you want to run\n";
-    return 1;
+  if (argc > 1) {
+    crispy.initialize();
+
+    if (!crispy.loadROM(argv[1])) {
+      exit(1);
+    }
+  } else {
+    emulation = false;
   }
-
-  crispy.initialize();
-
-  if (!crispy.loadROM(argv[1])) {
-    return 1;
-  }
-
-  const int SCALE = 16;
-
-  int width = 64 * SCALE;
-  int height = 32 * SCALE;
 
   SDL_Event event;
-  uint32_t pixelBuffer[2048];
-
-  bool isOpen = initializeSDL("CrispyChip - CHIP8 Emulator", width, height);
+  bool isOpen = initializeSDL("CrispyChip - CHIP8 Emulator", WIDTH, HEIGHT);
 
   while (isOpen) {
-    crispy.emulateCycle();
-    
     while (SDL_PollEvent(&event)) {
+
       switch (event.type) {
       case SDL_QUIT:
         isOpen = false;
         break;
-      case SDL_KEYDOWN:
-        if (event.key.keysym.sym == SDLK_ESCAPE) {
-          isOpen = false;
-        } else {
-          parseMovementKeyDown(event.key.keysym.sym);
+
+      case SDL_KEYDOWN: {
+
+        switch (event.key.keysym.sym) {
+        case SDLK_ESCAPE:
+          if (!emulation) isOpen = false;
+          else emulation = false;
+          break;
+        case SDLK_UP:
+          if (!emulation) {
+            if (selector.y == 48) {
+              selector.y = 408;
+              index = 3;
+            } else {
+              index--;
+              selector.y -= 120;
+            }
+          }
+          break;
+        case SDLK_DOWN:
+          if (!emulation) {
+            if (selector.y == 408) {
+              selector.y = 48;
+              index = 0;
+            } else {
+              index++;
+              selector.y += 120;
+            }
+          }
+          break;
+        case SDLK_RETURN:
+          if (!emulation) {
+            crispy.initialize();
+            crispy.loadROM(ROMS[index]);
+
+            emulation = true;
+          }
+          break;
+        default:
+          if (emulation) parseMovementKeyDown(event.key.keysym.sym);
         }
-        break;
+
+      } break;
+
       case SDL_KEYUP:
-        parseMovementKeyUp(event.key.keysym.sym);
+        if (emulation) parseMovementKeyUp(event.key.keysym.sym);
         break;
       }
     }
-    
-    if (crispy.render) {
-      for (int i = 0; i < 2048; ++i) {
-        if (crispy.display[i]) {
-          pixelBuffer[i] = 0xFFFFFFFF;
-        } else {
-          pixelBuffer[i] = 0x000000FF;
-        }
-      }
 
-      SDL_UpdateTexture(texture_crispy, nullptr, pixelBuffer, 64 * sizeof(uint32_t));
-      SDL_RenderCopy(renderer, texture_crispy, nullptr, nullptr);
-
-      crispy.render = false;
+    if (emulation) {
+      renderEmulation();
+    } else {
+      renderMenu();
     }
-
-    SDL_RenderPresent(renderer);
-    SDL_Delay(1);
   }
 
   // Clean up
   SDL_DestroyTexture(texture_crispy);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
+
+  TTF_CloseFont(font);
+  TTF_Quit();
+
   SDL_Quit();
 
   return 0;
@@ -91,6 +134,11 @@ bool initializeSDL(const std::string& title, int width, int height)
 {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     std::cerr << "Failed to initialize SDL\n";
+    return false;
+  }
+
+  if (TTF_Init() != 0) {
+    std::cerr << "Failed to initialize SDL_ttf\n";
     return false;
   }
 
@@ -131,7 +179,82 @@ bool initializeSDL(const std::string& title, int width, int height)
     return false;
   }
 
+  font = TTF_OpenFont("../resources/Consolas.ttf", FONT_SIZE);
   return true;
+}
+
+void displayTextAt(int y, const std::string& msg_text, SDL_Color color)
+{
+  SDL_Surface* font_surface = TTF_RenderText_Solid(font, msg_text.c_str(), color);
+
+  if (font_surface == nullptr) {
+    std::cerr << "Failed to create SDL_Surface\n";
+    return;
+  }
+
+  SDL_Texture* font_texture = SDL_CreateTextureFromSurface(renderer, font_surface);
+  SDL_FreeSurface(font_surface);
+
+  if (font_texture == nullptr) {
+    std::cerr << "Failed to create SDL_Texture\n";
+    return;
+  }
+
+  SDL_Rect font_rect = {};
+  SDL_QueryTexture(font_texture, nullptr, nullptr, &font_rect.w, &font_rect.h);
+
+  font_rect.x = (WIDTH / 2) - (font_rect.w / 2);
+  font_rect.y = y;
+
+  SDL_RenderCopy(renderer, font_texture, nullptr, &font_rect);
+  SDL_DestroyTexture(font_texture);
+}
+
+void renderMenu()
+{
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  SDL_RenderClear(renderer);
+
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  SDL_RenderFillRect(renderer, &selector);
+
+  for (int i = 0; i < 4; ++i) {
+    SDL_Color color;
+
+    if (i == index) color = { 0, 0, 0, 255 };
+    else color = { 255, 255, 255, 255 };
+
+    displayTextAt(75 + (i * 120), ROMS[i], color);
+  }
+
+  SDL_RenderPresent(renderer);
+}
+
+void renderEmulation() {
+  crispy.emulateCycle();
+
+  // Render is set to true after initialization, so it will render at least once, 
+  // in other words: it will clear the screen.
+  if (crispy.render) {
+    uint32_t pixelBuffer[2048];
+
+    for (int i = 0; i < 2048; ++i) {
+      if (crispy.display[i]) {
+        pixelBuffer[i] = 0xFFFFFFFF;
+      }
+      else {
+        pixelBuffer[i] = 0x000000FF;
+      }
+    }
+
+    SDL_UpdateTexture(texture_crispy, nullptr, pixelBuffer, 64 * sizeof(uint32_t));
+    SDL_RenderCopy(renderer, texture_crispy, nullptr, nullptr);
+
+    crispy.render = false;
+  }
+
+  SDL_RenderPresent(renderer);
+  SDL_Delay(1);
 }
 
 void parseMovementKeyDown(SDL_Keycode key)

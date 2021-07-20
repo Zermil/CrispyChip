@@ -5,7 +5,7 @@ create your own version check out [This technical reference](http://devernay.fre
 
 You can get CHIP8 roms from here: [ROMS](https://github.com/kripod/chip8-roms)
 
-![pong](./img/pong.jpg)
+![menu](./img/menu.jpg)
 ![ibm](./img/ibm_logo.jpg)
 ![maze](./img/maze.jpg)
 
@@ -32,5 +32,14 @@ Otherwise, you can use the provided `build.bat` file, you can specify your compi
 > cd build_dir
 > CripsyChip.exe "../roms/[ROM]" 
 ```
+
+### Alternatively
+
+```console
+> cd build_dir
+> CrispyChip.exe
+```
+
+To launch the emulator with a simple select menu
 
 **NOTE**: Make sure all DLLs (`SDL2.dll`, `SDL2_ttf.dll`, `libfreetype-6.dll`, `zlib1.dll`) are in the same place as `CrispyChip.exe` (`build.bat` copies them all automatically)
