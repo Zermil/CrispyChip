@@ -8,7 +8,7 @@ set FLAGS=-Os -w -s
 set INCLUDE=-I"include"
 set LIBS=-L"libs"
 
-set LINKER=-l"SDL2/SDL2" -l"SDL2/SDL2main" -l"SDL2_ttf/SDL2_ttf.lib"
+set LINKER=-l"SDL2/SDL2" -l"SDL2/SDL2main" -l"SDL2_ttf/SDL2_ttf"
 
 if not exist build_dir mkdir build_dir
 if not exist "build_dir\SDL2.dll" copy "libs\SDL2\SDL2.dll" "build_dir\SDL2.dll"
