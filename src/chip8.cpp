@@ -347,7 +347,7 @@ bool Chip8::loadROM(const std::string& rom_path)
   std::ifstream rom_file(rom_path, std::ios::binary | std::ios::ate);
 
   if (!rom_file.is_open()) {
-    std::cerr << "Invalid file provided\n";
+    std::cerr << "Invalid path to ROM provided\n";
     return false;
   }
 
