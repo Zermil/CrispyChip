@@ -3,7 +3,7 @@
 set CC=g++
 
 set FILES=src/main.cpp src/chip8.cpp
-set FLAGS=-Os -w -s
+set FLAGS=-Os -w -s -std=c++14
 
 set INCLUDE=-I"include"
 set LIBS=-L"libs"
