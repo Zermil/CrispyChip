@@ -11,11 +11,11 @@ SDL_Renderer* renderer = nullptr;
 SDL_Texture* texture_crispy = nullptr;
 TTF_Font* font = nullptr;
 
-const int FONT_SIZE = 30;
+constexpr int FONT_SIZE = 30;
 
-const int SCALE = 16;
-const int WIDTH = 64 * SCALE;
-const int HEIGHT = 32 * SCALE;
+constexpr int SCALE = 16;
+constexpr int WIDTH = 64 * SCALE;
+constexpr int HEIGHT = 32 * SCALE;
 
 const std::string ROMS[4] = {
   "../roms/IBM Logo.ch8",
@@ -24,22 +24,20 @@ const std::string ROMS[4] = {
   "../roms/Pong [Paul Vervalin, 1990].ch8"
 };
 
-SDL_Rect selector = { (WIDTH / 4) - 150, (HEIGHT / 4) - 80, (WIDTH / 2) + 300, 80 };
-
-int index = 0;
-
 Chip8 crispy;
 
 bool initializeSDL(const std::string& title, int width, int height);
 void displayTextAt(int y, const std::string& msg_text, SDL_Color color);
 void parseMovementKeyDown(SDL_Keycode key);
 void parseMovementKeyUp(SDL_Keycode key);
-void renderMenu();
+void renderMenu(int index, const SDL_Rect& selector);
 void renderEmulation();
 
 int main(int argc, char* argv[])
 {
+  SDL_Rect selector = { (WIDTH / 4) - 150, (HEIGHT / 4) - 80, (WIDTH / 2) + 300, 80 };
   bool emulation = true;
+  int index = 0;
   
   if (argc > 1) {
     crispy.initialize();
@@ -114,7 +112,7 @@ int main(int argc, char* argv[])
     if (emulation) {
       renderEmulation();
     } else {
-      renderMenu();
+      renderMenu(index, selector);
     }
   }
 
@@ -211,7 +209,7 @@ void displayTextAt(int y, const std::string& msg_text, SDL_Color color)
   SDL_DestroyTexture(font_texture);
 }
 
-void renderMenu()
+void renderMenu(int index, const SDL_Rect& selector)
 {
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
   SDL_RenderClear(renderer);
