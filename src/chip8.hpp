@@ -4,33 +4,52 @@
 #include <cstdint>
 #include <string>
 
+static constexpr uint8_t font_sprites[80] = {
+    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+    0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
+
 class Chip8 {
 public:
-  Chip8() = default;
-  ~Chip8() = default;
+    Chip8() = default;
+    ~Chip8() = default;
 
-  void initialize();
-  void emulateCycle();
-  bool loadROM(const std::string& rom_path);
+    void initialize();
+    void emulateCycle();
+    bool loadROM(const std::string& rom_path);
 
 public:
-  bool render;
+    bool render;
 
-  uint8_t keyboard[16];
-  uint8_t display[64*32]; // Total = 2048
+    uint8_t keyboard[16];
+    uint8_t display[64*32]; // Total = 2048
 
 private:
-  uint16_t stack[16];     // Stack, returns after subroutine
-  uint16_t I;             // I register, store memory addresses
-  uint16_t PC;            // Program counter
+    uint16_t stack[16];     // Stack, returns after subroutine
+    uint16_t I;             // I register, store memory addresses
+    uint16_t PC;            // Program counter
   
-  uint8_t memory[4096];   // 4K Memory
-  uint8_t V[16];          // Registers
-  uint8_t SP;             // Stack pointer
+    uint8_t memory[4096];   // 4K Memory
+    uint8_t V[16];          // Registers
+    uint8_t SP;             // Stack pointer
   
-  // Timers
-  uint8_t delay_timer;
-  uint8_t sound_timer;
+    // Timers
+    uint8_t delay_timer;
+    uint8_t sound_timer;
 };
 
 #endif // CHIP_8

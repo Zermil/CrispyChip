@@ -2,7 +2,7 @@
 
 set CC=g++
 
-set FILES=src/main.cpp src/chip8.cpp
+set FILES=src/main.cpp src/chip8.cpp src/smol_renderer.cpp
 set FLAGS=-Os -w -s -std=c++14
 
 set INCLUDE=-I"include"
