@@ -1,2 +1,5 @@
-build_dir
-./*.txt
+*.txt
+*.exe
+*.obj
+*.pdb
+*.ilk
