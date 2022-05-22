@@ -26,6 +26,12 @@ Otherwise, you can use the provided `build.bat` file, you can specify your compi
 > build 
 ```
 
+With MSVC
+
+```console
+> msvc 
+```
+
 ### Run
 
 ```console
