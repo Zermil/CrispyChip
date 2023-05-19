@@ -20,6 +20,8 @@ You can get CHIP8 roms from here: [ROMS](https://github.com/kripod/chip8-roms)
 
 ### Run
 
+**NOTE**: Make sure all DLLs (`SDL2.dll`, `SDL2_ttf.dll`) are in the same place as `CrispyChip.exe`
+
 ```console
 > cd build
 > CripsyChip.exe "../roms/[ROM]" 
@@ -27,11 +29,9 @@ You can get CHIP8 roms from here: [ROMS](https://github.com/kripod/chip8-roms)
 
 ### Alternatively
 
+To launch the emulator with a simple select menu:
+
 ```console
 > cd build
 > CrispyChip.exe
 ```
-
-To launch the emulator with a simple select menu
-
-**NOTE**: Make sure all DLLs (`SDL2.dll`, `SDL2_ttf.dll`) are in the same place as `CrispyChip.exe`
