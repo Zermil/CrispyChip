@@ -9,6 +9,7 @@ build/*
 !build/.gitkeep
 !build/Consolas.ttf
 !build/SDL2.dll
+!build/SDL2_ttf.dll
 
 !LICENSE.txt
 !README.txt
