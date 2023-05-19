@@ -310,7 +310,7 @@ void Chip8::emulate_cycle()
 
     // Timers are unsigned
     if (delay_timer > 0) {
-        delay_timer--;
+        delay_timer -= 1;
     }
 
     if (sound_timer > 0) {
@@ -318,7 +318,7 @@ void Chip8::emulate_cycle()
             printf("SOUND!\n");
         }
 
-        sound_timer--;
+        sound_timer -= 1;
     }
 }
 
