@@ -1,5 +1,5 @@
 #include <iostream>
-#include "smol_renderer.hpp"
+#include "smol_renderer.h"
 
 Renderer::Renderer(const std::string& title)
 {
@@ -102,7 +102,7 @@ void Renderer::renderMenu(size_t index, const SDL_Rect& selector)
 
 void Renderer::renderEmulation(Chip8& crispy)
 {
-    crispy.emulateCycle();
+    crispy.emulate_cycle();
 
     // Render is set to true after initialization, so it will render at least once, 
     // in other words: it will clear the screen when first called.

@@ -4,10 +4,10 @@
 #include <string>
 
 #include <SDL2/SDL.h>
-#undef main
-
 #include <SDL2/SDL_ttf.h>
-#include "chip8.hpp"
+
+#define CHIP8_IMPLEMENTATION
+#include "chip8.h"
 
 static constexpr int SCALE = 16;
 static constexpr int WIDTH = 64 * SCALE;

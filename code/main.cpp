@@ -1,12 +1,18 @@
 #include <iostream>
-#include "smol_renderer.hpp"
+
+#include "typedefs.h"
+#include "smol_renderer.h"
 
 void parseMovementKeyUp(Chip8& crispy, SDL_Keycode key);
 void parseMovementKeyDown(Chip8& crispy, SDL_Keycode key);
 
-int main(int argc, char* argv[])
+int main(int argc, char **argv)
 {
-    SDL_Rect selector = { (WIDTH / 4) - 150, (HEIGHT / 4) - 80, (WIDTH / 2) + 300, 80 };
+    SDL_Rect selector = {
+        (WIDTH / 4) - 150, (HEIGHT / 4) - 80,
+        (WIDTH / 2) + 300, 80
+    };
+    
     bool emulation = true;
     size_t index = 0;
   
@@ -15,16 +21,16 @@ int main(int argc, char* argv[])
     if (argc > 1) {
         crispy.initialize();
 
-        if (!crispy.loadROM(argv[1])) {
+        if (!crispy.load_rom(argv[1])) {
             exit(1);
         }
     } else {
         emulation = false;
     }
 
-    SDL_Event event;
     Renderer renderer("CrispyChip - CHIP8 Emulator");
     bool isOpen = !renderer.error;
+    SDL_Event event;
   
     while (isOpen) {
         while (SDL_PollEvent(&event)) {
@@ -64,7 +70,7 @@ int main(int argc, char* argv[])
                         case SDLK_RETURN:
                             if (!emulation) {
                                 crispy.initialize();
-                                crispy.loadROM(ROMS[index]);
+                                crispy.load_rom(ROMS[index].c_str());
 
                                 emulation = true;
                             }
@@ -80,8 +86,11 @@ int main(int argc, char* argv[])
             }
         }
 
-        if (emulation) renderer.renderEmulation(crispy);
-        else renderer.renderMenu(index, selector);
+        if (emulation) {
+            renderer.renderEmulation(crispy);
+        } else {
+            renderer.renderMenu(index, selector);
+        }
     }
 
     return 0;

@@ -1,9 +1,12 @@
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <cstdlib>
-#include <ctime>
-#include "chip8.hpp"
+#include <time.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+
+#include "typedefs.h"
+#include "utils.h"
+#include "chip8.h"
 
 void Chip8::initialize() 
 {
@@ -17,32 +20,30 @@ void Chip8::initialize()
     SP = 0;
     I = 0;
 
-    for (int i = 0; i < 80; ++i) {
+    for (u32 i = 0; i < 80; ++i) {
         memory[i] = font_sprites[i];
     }
 
     delay_timer = 0;
     sound_timer = 0;
-
+    
     render = true;
 
     // Some instructions/opcodes need random byte
-    srand((unsigned int) time(0));
+    srand((u32) time(0));
 }
 
-void Chip8::emulateCycle()
+void Chip8::emulate_cycle()
 {
-    // Get opcode
-    uint16_t opcode = memory[PC] << 8 | memory[PC + 1];
+    u16 opcode = memory[PC] << 8 | memory[PC + 1];
 
-    uint16_t addr   = opcode & 0x0FFF;      // address, lowest 12 bits
-
-    uint8_t  n      = opcode & 0x000F;      // lowest 4 bits
-    uint8_t  kk     = opcode & 0x00FF;      // lowest 8 bits
-    uint8_t  x      = opcode >> 8 & 0x000F; // 4 bit value, lower 4 bits of the high byte
-    uint8_t  y      = opcode >> 4 & 0x000F; // 4 bit value, upper 4 bits of the high byte
+    u16 addr = opcode & 0x0FFF;  // address, lowest 12 bits
+    u8 n = opcode & 0x000F;      // lowest 4 bits
+    u8 kk = opcode & 0x00FF;     // lowest 8 bits
+    u8 x = opcode >> 8 & 0x000F; // 4 bit value, lower 4 bits of the high byte
+    u8 y = opcode >> 4 & 0x000F; // 4 bit value, upper 4 bits of the high byte
   
-    // OP-codes, implementations
+    // opcodes - implementations
     switch (opcode & 0xF000) {
         case 0x0000: {
             switch (n) {
@@ -59,7 +60,7 @@ void Chip8::emulateCycle()
                     break;
 
                 default:
-                    std::cerr << "Unknown opcode: " << opcode << std::endl;
+                    assert(0 && "Unknown opcode detected!\n");
             }
         } break;
     
@@ -157,7 +158,7 @@ void Chip8::emulateCycle()
                     break;
 
                 default:
-                    std::cerr << "Unknown opcode: " << opcode << std::endl;
+                    assert(0 && "Unknown opcode detected!\n");
             }
         } break;
 
@@ -182,20 +183,19 @@ void Chip8::emulateCycle()
             PC += 2;
             break;
 
-            // This is probably the weirdest instruction in CHIP8
         case 0xD000: { // Display n-byte sprite starting at memory location I at (V[x], V[y]), set V[0xF] = collision
-            uint8_t Vx = V[x];
-            uint8_t Vy = V[y];
-            uint8_t pixel; 
+            u8 Vx = V[x];
+            u8 Vy = V[y];
+            u8 pixel; 
             V[0xF] = 0;
 
-            for (int y0 = 0; y0 < n; ++y0) {
+            for (u32 y0 = 0; y0 < n; ++y0) {
                 pixel = memory[I + y0];
 
-                for (int x0 = 0; x0 < 8; ++x0) {
+                for (u32 x0 = 0; x0 < 8; ++x0) {
                     if ((pixel & (0x80 >> x0)) != 0) {
-                        // index = x + width*y (% loop around)
-                        int index = ((Vx + x0) + ((Vy + y0) * 64)) % 2048;
+                        // index = x + width * y (and % loop around)
+                        u32 index = ((Vx + x0) + ((Vy + y0) * 64)) % 2048;
 
                         if (display[index] == 1) {
                             V[0xF] = 1;
@@ -227,7 +227,7 @@ void Chip8::emulateCycle()
                     break;
 
                 default:
-                    std::cerr << "Unknown opcode: " << opcode << std::endl;
+                    assert(0 && "Unknown opcode detected!\n");
             }
         } break;
 
@@ -241,7 +241,7 @@ void Chip8::emulateCycle()
                 case 0x000A: { // Wait for a key press, store the value of the key in Vx
                     bool keyPress = false;
 
-                    for (uint8_t i = 0; i < 16; ++i) {
+                    for (u8 i = 0; i < 16; ++i) {
                         if (keyboard[i] != 0) {
                             V[x] = i;
                             keyPress = true;
@@ -285,7 +285,7 @@ void Chip8::emulateCycle()
                     break;
 
                 case 0x0055: // Store registers V0 through Vx in memory starting at location I 
-                    for (int i = 0; i <= x; ++i) {
+                    for (u32 i = 0; i <= x; ++i) {
                         memory[I + i] = V[i]; 
                     }
                     I += x + 1; // Staying true to the original
@@ -293,73 +293,90 @@ void Chip8::emulateCycle()
                     break;
 
                 case 0x0065: // Read registers V0 through Vx from memory starting at location I 
-                    for (int i = 0; i <= x; ++i) {
+                    for (u32 i = 0; i <= x; ++i) {
                         V[i] = memory[I + i]; 
                     }
+                    
                     I += x + 1; // Staying true to the original
                     PC += 2;
                     break;
 
                 default:
-                    std::cerr << "Unknown opcode: " << opcode << std::endl;
+                    assert(0 && "Unknown opcode detected!\n");
             }
         } break;
 
         default:
-            std::cerr << "Unknown opcode: " << opcode << std::endl;
+            assert(0 && "Unknown opcode detected!\n");
     }
 
-    // Timers, unsigned so that's why the if "guards"
+    // Timers are unsigned
     if (delay_timer > 0) {
         delay_timer--;
     }
 
     if (sound_timer > 0) {
         if (sound_timer == 1) {
-            std::cout << "SOUND\n";
+            printf("SOUND!\n");
         }
 
         sound_timer--;
     }
 }
 
-bool Chip8::loadROM(const std::string& rom_path)
+bool Chip8::load_rom(const char *rom_path)
 {
-    std::ifstream rom_file(rom_path, std::ios::binary | std::ios::ate);
-
-    if (!rom_file.is_open()) {
-        std::cerr << "Invalid path to ROM provided\n";
-        return false;
+    FILE *rom_file = fopen(rom_path, "rb");
+    u8 *buffer = NULL;
+    
+    if (rom_file == NULL) {
+        fprintf(stderr, "Invalid path to ROM provided\n");
+        goto fail;
     }
 
-    std::streamsize size = rom_file.tellg();
-
-    // Check if file size is appropriate
-    if (size > 4096 - 512 || size <= 0) {
-        std::cerr << "Invalid file size, make sure the ROM fits CHIP8 memory\n";
-        rom_file.close();
-        return false;
+    if (fseek(rom_file, 0, SEEK_END) != 0) {
+        fprintf(stderr, "Could not find the end of file\n");
+        goto fail;
+    }
+    
+    u64 size = ftell(rom_file);
+    
+    if (fseek(rom_file, 0, SEEK_SET) !=0) {
+        fprintf(stderr, "Could not find the beginning of the file\n");
+        goto fail;
+    }
+    
+    if (size > CHIP8_MEMORY - CHIP8_RESERVED || size <= 0) {
+        fprintf(stderr, "Invalid file size, make sure the ROM fits CHIP8 memory\n");
+        goto fail;
     }
 
-    uint8_t* buffer = new uint8_t[size];
+    buffer = (u8 *) malloc(size);
 
-    if (buffer == nullptr) {
-        std::cerr << "Failed to allocate buffer\n";
-        rom_file.close();
-        return false;
-    }
-  
-    rom_file.seekg(0, std::ios::beg);
-    rom_file.read(reinterpret_cast<char*>(buffer), size);
-
-    // First 512 bytes are reserved
-    for (int i = 0; i < size; ++i) {
-        memory[i + 512] = buffer[i];
+    if (buffer == NULL) {
+        fprintf(stderr, "Failed to allocate buffer\n");
+        goto fail;
     }
 
-    // Clean up
-    rom_file.close();
-    delete[] buffer;
+    if (fread(buffer, 1, size, rom_file) != size) {
+        fprintf(stderr, "Could not read entire ROM file\n");
+        goto fail;
+    }
+    
+    for (u32 i = 0; i < size; ++i) {
+        memory[i + CHIP8_RESERVED] = buffer[i];
+    }
 
-    return true; 
+    return(true);
+    
+fail:
+    if (rom_file) {
+        fclose(rom_file);
+    }
+
+    if (buffer) {
+        free((void *) buffer);
+    }
+    
+    return(false);
 }
