@@ -20,7 +20,7 @@ You can get CHIP8 roms from here: [ROMS](https://github.com/kripod/chip8-roms)
 
 ### Run
 
-**NOTE**: Make sure all DLLs (`SDL2.dll`, `SDL2_ttf.dll`) are in the same place as `CrispyChip.exe`
+**NOTE**: Make sure all DLLs (`SDL2.dll`, `SDL2_ttf.dll`) and `Consolas.ttf` are in the same place as `CrispyChip.exe`
 
 ```console
 > cd build
