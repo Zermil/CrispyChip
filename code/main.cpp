@@ -1,23 +1,68 @@
-#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <SDL2/SDL.h>
 
 #include "typedefs.h"
+#include "utils.h"
+
 #include "smol_renderer.h"
+
+// @ToDo: Substitute emulation flag with something else to distinguish
+// between appropriate draw-calls?
+
+global const char *ROMS[] = {
+    "../roms/IBM Logo.ch8",
+    "../roms/Maze [David Winter, 199x].ch8",
+    "../roms/Sierpinski [Sergey Naydenov, 2010].ch8",
+    "../roms/Pong [Paul Vervalin, 1990].ch8",
+};
 
 void parse_movement_key_down(Chip8 *crispy, SDL_Keycode key);
 void parse_movement_key_up(Chip8 *crispy, SDL_Keycode key);
 
+struct Selector {
+    SDL_Rect rect;    
+    u32 index;
+};
+
+void selector_move_up(Selector *selector)
+{
+    if (selector->rect.y == 0) {
+        selector->index = ARRAY_LEN(ROMS) - 1;
+        selector->rect.y = RENDER_HEIGHT_SCALED - selector->rect.h;
+    } else {
+        selector->index -= 1;
+        selector->rect.y -= selector->rect.h;
+    }
+}
+
+void selector_move_down(Selector *selector)
+{
+    if (selector->rect.y == RENDER_HEIGHT_SCALED - selector->rect.h) {
+        selector->index = 0;
+        selector->rect.y = 0;
+    } else {
+        selector->index += 1;
+        selector->rect.y += selector->rect.h;
+    }
+}
+
 int main(int argc, char **argv)
 {
-    SDL_Rect selector = {
-        (RENDER_WIDTH_SCALED / 4) - 150, (RENDER_HEIGHT_SCALED / 4) - 80,
-        (RENDER_WIDTH_SCALED / 2) + 300, 80
-    };
+    Chip8 crispy;
+    
+    Selector selector = {0};
+    {
+        selector.rect.w = RENDER_WIDTH_SCALED;
+        selector.rect.h = (RENDER_HEIGHT_SCALED / ARRAY_LEN(ROMS));
+        selector.rect.x = 0;
+        selector.rect.y = 0;
+        
+        selector.index = 0;
+    }
     
     bool emulation = true;
-    u32 index = 0;
-  
-    Chip8 crispy;
-  
     if (argc > 1) {
         crispy.initialize();
 
@@ -28,7 +73,7 @@ int main(int argc, char **argv)
         emulation = false;
     }
 
-    Renderer renderer("CrispyChip - CHIP8 Emulator");
+    Renderer smol("CrispyChip - CHIP8 Emulator");
     bool should_quit = false;
     
     while (!should_quit) {
@@ -36,62 +81,69 @@ int main(int argc, char **argv)
         
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-                case SDL_QUIT:
+                case SDL_QUIT: {
                     should_quit = true;
-                    break;
+                } break;
 
                 case SDL_KEYDOWN: {
                     switch (event.key.keysym.sym) {
-                        case SDLK_ESCAPE:
-                            if (!emulation) should_quit = true;
-                            else emulation = false;
-                            break;
-                        case SDLK_UP:
+                        case SDLK_ESCAPE: {
                             if (!emulation) {
-                                if (selector.y == 48) {
-                                    selector.y = 408;
-                                    index = 3;
-                                } else {
-                                    index--;
-                                    selector.y -= 120;
-                                }
+                                should_quit = true;
+                            } else {
+                                emulation = false;
                             }
-                            break;
-                        case SDLK_DOWN:
+                        } break;
+
+                        case SDLK_UP: {
                             if (!emulation) {
-                                if (selector.y == 408) {
-                                    selector.y = 48;
-                                    index = 0;
-                                } else {
-                                    index++;
-                                    selector.y += 120;
-                                }
+                                selector_move_up(&selector);
                             }
-                            break;
-                        case SDLK_RETURN:
+                        } break;
+                            
+                        case SDLK_DOWN: {
+                            if (!emulation) {
+                                selector_move_down(&selector);
+                            }
+                        } break;
+                            
+                        case SDLK_RETURN: {
                             if (!emulation) {
                                 crispy.initialize();
-                                crispy.load_rom(ROMS[index]);
-
+                                crispy.load_rom(ROMS[selector.index]);
+                                
                                 emulation = true;
                             }
-                            break;
-                        default:
-                            if (emulation) parse_movement_key_down(&crispy, event.key.keysym.sym);
+                        } break;
+                            
+                        default: {
+                            if (emulation) {
+                                parse_movement_key_down(&crispy, event.key.keysym.sym);
+                            }
+                        } break;
                     }
                 } break;
 
-                case SDL_KEYUP:
-                    if (emulation) parse_movement_key_up(&crispy, event.key.keysym.sym);
-                    break;
+                case SDL_KEYUP: {
+                    if (emulation) {
+                        parse_movement_key_up(&crispy, event.key.keysym.sym);
+                    }
+                } break;
             }
         }
 
         if (emulation) {
-            renderer.render_emulation(&crispy);
+            smol.render_emulation(&crispy);
         } else {
-            renderer.render_menu(index, selector);
+            SDL_SetRenderDrawColor(smol.renderer, 0, 0, 0, 255);
+            SDL_RenderClear(smol.renderer);
+            
+            smol.render_selector(selector.rect);
+            smol.render_menu(selector.index, ROMS, ARRAY_LEN(ROMS));
         }
+
+        SDL_RenderPresent(smol.renderer);
+        SDL_Delay(1);
     }
 
     return 0;

@@ -56,26 +56,24 @@ void Renderer::display_text_at(u32 x, u32 y, const char *msg_text, SDL_Color col
     SDL_DestroyTexture(font_texture);
 }
 
-void Renderer::render_menu(u32 index, const SDL_Rect selector)
+void Renderer::render_menu(u32 selected_index, const char *roms[], u32 roms_size)
 {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderFillRect(renderer, &selector);
-
-    for (u32 i = 0; i < ARRAY_LEN(ROMS); ++i) {
+    for (u32 i = 0; i < roms_size; ++i) {
         SDL_Color color = color = { 0, 0, 0, 255 };
         
-        if (i != index) {
+        if (i != selected_index) {
             color = { 255, 255, 255, 255 };
         }
 
-        u32 y = (RENDER_HEIGHT_SCALED / ARRAY_LEN(ROMS));
-        display_text_at(RENDER_WIDTH_SCALED / 2, (i*y) + (y/2), ROMS[i], color);
+        u32 y = (RENDER_HEIGHT_SCALED / roms_size);
+        display_text_at(RENDER_WIDTH_SCALED / 2, (i*y) + (y/2), roms[i], color);
     }
+}
 
-    SDL_RenderPresent(renderer);
+void Renderer::render_selector(SDL_Rect selector_rect)
+{
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderFillRect(renderer, &selector_rect);
 }
 
 void Renderer::render_emulation(Chip8 *crispy)
@@ -100,9 +98,6 @@ void Renderer::render_emulation(Chip8 *crispy)
 
         crispy->render = false;
     }
-
-    SDL_RenderPresent(renderer);
-    SDL_Delay(1);
 }
 
 Renderer::~Renderer()
