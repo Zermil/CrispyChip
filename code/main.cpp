@@ -18,15 +18,15 @@ global const char *ROMS[] = {
     "../roms/Pong [Paul Vervalin, 1990].ch8",
 };
 
-void parse_movement_key_down(Chip8 *crispy, SDL_Keycode key);
-void parse_movement_key_up(Chip8 *crispy, SDL_Keycode key);
+internal void parse_movement_key_down(Chip8 *crispy, SDL_Keycode key);
+internal void parse_movement_key_up(Chip8 *crispy, SDL_Keycode key);
 
 struct Selector {
     SDL_Rect rect;    
     u32 index;
 };
 
-void selector_move_up(Selector *selector)
+internal void selector_move_up(Selector *selector)
 {
     if (selector->rect.y == 0) {
         selector->index = ARRAY_LEN(ROMS) - 1;
@@ -37,7 +37,7 @@ void selector_move_up(Selector *selector)
     }
 }
 
-void selector_move_down(Selector *selector)
+internal void selector_move_down(Selector *selector)
 {
     if (selector->rect.y == RENDER_HEIGHT_SCALED - selector->rect.h) {
         selector->index = 0;
@@ -53,28 +53,25 @@ int main(int argc, char **argv)
     Chip8 crispy;
     
     Selector selector = {0};
-    {
-        selector.rect.w = RENDER_WIDTH_SCALED;
-        selector.rect.h = (RENDER_HEIGHT_SCALED / ARRAY_LEN(ROMS));
-    }
+    selector.rect.w = RENDER_WIDTH_SCALED;
+    selector.rect.h = (RENDER_HEIGHT_SCALED / ARRAY_LEN(ROMS));
     
-    bool emulation = true;
+    bool emulation = false;
     if (argc > 1) {
         crispy.initialize();
-
-        if (!crispy.load_rom(argv[1])) {
+        
+        if (crispy.load_rom(argv[1])) {
+            emulation = true;
+        } else {
             exit(1);
         }
-    } else {
-        emulation = false;
     }
 
     Renderer smol("CrispyChip - CHIP8 Emulator");
-    bool should_quit = false;
     
+    bool should_quit = false;
     while (!should_quit) {
         SDL_Event event;
-        
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 case SDL_QUIT: {
@@ -106,9 +103,10 @@ int main(int argc, char **argv)
                         case SDLK_RETURN: {
                             if (!emulation) {
                                 crispy.initialize();
-                                crispy.load_rom(ROMS[selector.index]);
                                 
-                                emulation = true;
+                                if (crispy.load_rom(ROMS[selector.index])) {
+                                    emulation = true;
+                                }
                             }
                         } break;
                             
@@ -145,7 +143,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void parse_movement_key_down(Chip8 *crispy, SDL_Keycode key)
+internal void parse_movement_key_down(Chip8 *crispy, SDL_Keycode key)
 {
     switch (key) {
         case SDLK_1:
@@ -202,7 +200,7 @@ void parse_movement_key_down(Chip8 *crispy, SDL_Keycode key)
     }
 }
 
-void parse_movement_key_up(Chip8 *crispy, SDL_Keycode key)
+internal void parse_movement_key_up(Chip8 *crispy, SDL_Keycode key)
 {
     switch (key) {
         case SDLK_1:
