@@ -50,7 +50,7 @@ void Renderer::display_text_at(u32 x, u32 y, const char *msg_text, SDL_Color col
     SDL_Rect font_rect = {0};
     SDL_QueryTexture(font_texture, NULL, NULL, &font_rect.w, &font_rect.h);
     font_rect.x = x - (font_rect.w / 2);
-    font_rect.y = y;
+    font_rect.y = y - (font_rect.h / 2);
 
     SDL_RenderCopy(renderer, font_texture, NULL, &font_rect);
     SDL_DestroyTexture(font_texture);
