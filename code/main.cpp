@@ -3,18 +3,18 @@
 #include "typedefs.h"
 #include "smol_renderer.h"
 
-void parseMovementKeyUp(Chip8& crispy, SDL_Keycode key);
-void parseMovementKeyDown(Chip8& crispy, SDL_Keycode key);
+void parse_movement_key_down(Chip8 *crispy, SDL_Keycode key);
+void parse_movement_key_up(Chip8 *crispy, SDL_Keycode key);
 
 int main(int argc, char **argv)
 {
     SDL_Rect selector = {
-        (WIDTH / 4) - 150, (HEIGHT / 4) - 80,
-        (WIDTH / 2) + 300, 80
+        (RENDER_WIDTH_SCALED / 4) - 150, (RENDER_HEIGHT_SCALED / 4) - 80,
+        (RENDER_WIDTH_SCALED / 2) + 300, 80
     };
     
     bool emulation = true;
-    size_t index = 0;
+    u32 index = 0;
   
     Chip8 crispy;
   
@@ -29,20 +29,21 @@ int main(int argc, char **argv)
     }
 
     Renderer renderer("CrispyChip - CHIP8 Emulator");
-    bool isOpen = !renderer.error;
-    SDL_Event event;
-  
-    while (isOpen) {
+    bool should_quit = false;
+    
+    while (!should_quit) {
+        SDL_Event event;
+        
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 case SDL_QUIT:
-                    isOpen = false;
+                    should_quit = true;
                     break;
 
                 case SDL_KEYDOWN: {
                     switch (event.key.keysym.sym) {
                         case SDLK_ESCAPE:
-                            if (!emulation) isOpen = false;
+                            if (!emulation) should_quit = true;
                             else emulation = false;
                             break;
                         case SDLK_UP:
@@ -70,142 +71,142 @@ int main(int argc, char **argv)
                         case SDLK_RETURN:
                             if (!emulation) {
                                 crispy.initialize();
-                                crispy.load_rom(ROMS[index].c_str());
+                                crispy.load_rom(ROMS[index]);
 
                                 emulation = true;
                             }
                             break;
                         default:
-                            if (emulation) parseMovementKeyDown(crispy, event.key.keysym.sym);
+                            if (emulation) parse_movement_key_down(&crispy, event.key.keysym.sym);
                     }
                 } break;
 
                 case SDL_KEYUP:
-                    if (emulation) parseMovementKeyUp(crispy, event.key.keysym.sym);
+                    if (emulation) parse_movement_key_up(&crispy, event.key.keysym.sym);
                     break;
             }
         }
 
         if (emulation) {
-            renderer.renderEmulation(crispy);
+            renderer.render_emulation(&crispy);
         } else {
-            renderer.renderMenu(index, selector);
+            renderer.render_menu(index, selector);
         }
     }
 
     return 0;
 }
 
-void parseMovementKeyDown(Chip8& crispy, SDL_Keycode key)
+void parse_movement_key_down(Chip8 *crispy, SDL_Keycode key)
 {
     switch (key) {
         case SDLK_1:
-            crispy.keyboard[0x1] = 1;
+            crispy->keyboard[0x1] = 1;
             break;
         case SDLK_2:
-            crispy.keyboard[0x2] = 1;
+            crispy->keyboard[0x2] = 1;
             break;
         case SDLK_3:
-            crispy.keyboard[0x3] = 1;
+            crispy->keyboard[0x3] = 1;
             break;
         case SDLK_4:
-            crispy.keyboard[0xC] = 1;
+            crispy->keyboard[0xC] = 1;
             break;
 
         case SDLK_q:
-            crispy.keyboard[0x4] = 1;
+            crispy->keyboard[0x4] = 1;
             break;
         case SDLK_w:
-            crispy.keyboard[0x5] = 1;
+            crispy->keyboard[0x5] = 1;
             break;
         case SDLK_e:
-            crispy.keyboard[0x6] = 1;
+            crispy->keyboard[0x6] = 1;
             break;
         case SDLK_r:
-            crispy.keyboard[0xD] = 1;
+            crispy->keyboard[0xD] = 1;
             break;
 
         case SDLK_a:
-            crispy.keyboard[0x7] = 1;
+            crispy->keyboard[0x7] = 1;
             break;
         case SDLK_s:
-            crispy.keyboard[0x8] = 1;
+            crispy->keyboard[0x8] = 1;
             break;
         case SDLK_d:
-            crispy.keyboard[0x9] = 1;
+            crispy->keyboard[0x9] = 1;
             break;
         case SDLK_f:
-            crispy.keyboard[0xE] = 1;
+            crispy->keyboard[0xE] = 1;
             break;
 
         case SDLK_z:
-            crispy.keyboard[0xA] = 1;
+            crispy->keyboard[0xA] = 1;
             break;
         case SDLK_x:
-            crispy.keyboard[0x0] = 1;
+            crispy->keyboard[0x0] = 1;
             break;
         case SDLK_c:
-            crispy.keyboard[0xB] = 1;
+            crispy->keyboard[0xB] = 1;
             break;
         case SDLK_v:
-            crispy.keyboard[0xF] = 1;
+            crispy->keyboard[0xF] = 1;
             break;
     }
 }
 
-void parseMovementKeyUp(Chip8& crispy, SDL_Keycode key)
+void parse_movement_key_up(Chip8 *crispy, SDL_Keycode key)
 {
     switch (key) {
         case SDLK_1:
-            crispy.keyboard[0x1] = 0;
+            crispy->keyboard[0x1] = 0;
             break;
         case SDLK_2:
-            crispy.keyboard[0x2] = 0;
+            crispy->keyboard[0x2] = 0;
             break;
         case SDLK_3:
-            crispy.keyboard[0x3] = 0;
+            crispy->keyboard[0x3] = 0;
             break;
         case SDLK_4:
-            crispy.keyboard[0xC] = 0;
+            crispy->keyboard[0xC] = 0;
             break;
 
         case SDLK_q:
-            crispy.keyboard[0x4] = 0;
+            crispy->keyboard[0x4] = 0;
             break;
         case SDLK_w:
-            crispy.keyboard[0x5] = 0;
+            crispy->keyboard[0x5] = 0;
             break;
         case SDLK_e:
-            crispy.keyboard[0x6] = 0;
+            crispy->keyboard[0x6] = 0;
             break;
         case SDLK_r:
-            crispy.keyboard[0xD] = 0;
+            crispy->keyboard[0xD] = 0;
             break;
 
         case SDLK_a:
-            crispy.keyboard[0x7] = 0;
+            crispy->keyboard[0x7] = 0;
             break;
         case SDLK_s:
-            crispy.keyboard[0x8] = 0;
+            crispy->keyboard[0x8] = 0;
             break;
         case SDLK_d:
-            crispy.keyboard[0x9] = 0;
+            crispy->keyboard[0x9] = 0;
             break;
         case SDLK_f:
-            crispy.keyboard[0xE] = 0;
+            crispy->keyboard[0xE] = 0;
             break;
 
         case SDLK_z:
-            crispy.keyboard[0xA] = 0;
+            crispy->keyboard[0xA] = 0;
             break;
         case SDLK_x:
-            crispy.keyboard[0x0] = 0;
+            crispy->keyboard[0x0] = 0;
             break;
         case SDLK_c:
-            crispy.keyboard[0xB] = 0;
+            crispy->keyboard[0xB] = 0;
             break;
         case SDLK_v:
-            crispy.keyboard[0xF] = 0;
+            crispy->keyboard[0xF] = 0;
             break;
     }
 }

@@ -7,6 +7,8 @@
 #define global static
 #define local_persist static
 
+#define ARRAY_LEN(arr) (sizeof(arr)/sizeof(arr[0]))
+
 #define ERROR_EXIT(cond, msg, ...)                  \
     do {                                            \
         if ((cond)) {                               \

@@ -1,40 +1,43 @@
-#ifndef SMOL_RENDERER
-#define SMOL_RENDERER
-
-#include <string>
+#ifndef SMOL_RENDERER_H_
+#define SMOL_RENDERER_H_
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
-#define CHIP8_IMPLEMENTATION
+#include "utils.h"
+#include "typedefs.h"
+
 #include "chip8.h"
 
-static constexpr int SCALE = 16;
-static constexpr int WIDTH = 64 * SCALE;
-static constexpr int HEIGHT = 32 * SCALE;
-static constexpr int FONT_SIZE = 30;
+#ifndef RENDER_SCALE
+# define RENDER_SCALE 16
+#endif // RENDER_SCALE
 
-static const std::string ROMS[4] = {
+#define RENDER_WIDTH 64
+#define RENDER_HEIGHT 32
+#define RENDER_WIDTH_SCALED 64 * RENDER_SCALE
+#define RENDER_HEIGHT_SCALED 32 * RENDER_SCALE
+#define RENDER_FONT_SIZE 30
+
+global const char *ROMS[] = {
     "../roms/IBM Logo.ch8",
     "../roms/Maze [David Winter, 199x].ch8",
     "../roms/Sierpinski [Sergey Naydenov, 2010].ch8",
-    "../roms/Pong [Paul Vervalin, 1990].ch8"
+    "../roms/Pong [Paul Vervalin, 1990].ch8",
 };
 
 struct Renderer {
-    Renderer() = delete;
-    Renderer(const std::string& title);
+    Renderer(const char *title);
     ~Renderer();
     
-    void displayTextAt(const std::string& msg_text, SDL_Color& color, int y);
-    void renderMenu(size_t index, const SDL_Rect& selector);
-    void renderEmulation(Chip8& crispy);
+    void display_text_at(u32 x, u32 y, const char *msg_text, SDL_Color color);
+    void render_menu(u32 index, const SDL_Rect selector);
+    void render_emulation(Chip8 *crispy);
     
-    SDL_Window* window = nullptr;
-    SDL_Renderer* renderer = nullptr;
-    SDL_Texture* texture_crispy = nullptr;
-    TTF_Font* font = nullptr;
-    bool error = false;
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+    SDL_Texture *texture_crispy;
+    TTF_Font *font;
 };
 
-#endif // SMOL_RENDERER
+#endif // SMOL_RENDERER_H_

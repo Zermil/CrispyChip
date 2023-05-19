@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "typedefs.h"
-#include "utils.h"
 #include "chip8.h"
 
 void Chip8::initialize() 
