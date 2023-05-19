@@ -17,7 +17,7 @@
 #define RENDER_HEIGHT 32
 #define RENDER_WIDTH_SCALED 64 * RENDER_SCALE
 #define RENDER_HEIGHT_SCALED 32 * RENDER_SCALE
-#define RENDER_FONT_SIZE 30
+#define RENDER_FONT_SIZE 2 * RENDER_SCALE
 
 struct Renderer {
     Renderer(const char *title);

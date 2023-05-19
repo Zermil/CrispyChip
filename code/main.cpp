@@ -56,10 +56,6 @@ int main(int argc, char **argv)
     {
         selector.rect.w = RENDER_WIDTH_SCALED;
         selector.rect.h = (RENDER_HEIGHT_SCALED / ARRAY_LEN(ROMS));
-        selector.rect.x = 0;
-        selector.rect.y = 0;
-        
-        selector.index = 0;
     }
     
     bool emulation = true;

@@ -31,13 +31,13 @@ global u8 font_sprites[80] = {
 };
 
 struct Chip8 {
-    bool render;
-    u8 keyboard[CHIP8_KEYBOARD];
-    u8 display[CHIP8_DISPLAY];
-
     void initialize();
     void emulate_cycle();
     bool load_rom(const char *rom_path);
+    
+    bool render;
+    u8 keyboard[CHIP8_KEYBOARD];
+    u8 display[CHIP8_DISPLAY];
     
     // @Note: Below are variables specific for the Chip8 CPU to work
     // there's really no need to access them so they _could_ be private or something,
