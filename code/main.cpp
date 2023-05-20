@@ -8,9 +8,6 @@
 
 #include "smol_renderer.h"
 
-// @ToDo: Substitute emulation flag with something else to distinguish
-// between appropriate draw-calls?
-
 global const char *ROMS[] = {
     "../roms/IBM Logo.ch8",
     "../roms/Maze [David Winter, 199x].ch8",
@@ -18,13 +15,20 @@ global const char *ROMS[] = {
     "../roms/Pong [Paul Vervalin, 1990].ch8",
 };
 
-internal void parse_movement_key_down(Chip8 *crispy, SDL_Keycode key);
-internal void parse_movement_key_up(Chip8 *crispy, SDL_Keycode key);
-
 struct Selector {
     SDL_Rect rect;    
     u32 index;
 };
+
+// @ToDo: Could probably add something like MEM_DEBUG mode or something
+// similar for fun?
+enum Mode {
+    MENU = 0,
+    EMULATION,
+};
+
+internal void parse_movement_key_down(Chip8 *crispy, SDL_Keycode key);
+internal void parse_movement_key_up(Chip8 *crispy, SDL_Keycode key);
 
 internal void selector_move_up(Selector *selector)
 {
@@ -48,30 +52,61 @@ internal void selector_move_down(Selector *selector)
     }
 }
 
+internal Selector create_selector(u32 x, u32 y, u32 w, u32 h)
+{
+    Selector selector = {0};
+    selector.rect.x = x;
+    selector.rect.y = y;
+    selector.rect.w = w;
+    selector.rect.h = h;
+    
+    return(selector);
+}
+
+internal void handle_menu_events(Selector *selector, SDL_Event event)
+{
+    switch (event.type) {
+        case SDL_KEYDOWN: {
+            switch (event.key.keysym.sym) {
+                case SDLK_UP: selector_move_up(selector); break;
+                case SDLK_DOWN: selector_move_down(selector); break;
+            }
+        } break;
+    }
+}
+
+internal void handle_emulation_events(Chip8 *crispy, SDL_Event event)
+{
+    switch (event.type) {
+        case SDL_KEYUP: {            
+            parse_movement_key_up(crispy, event.key.keysym.sym);
+        } break;
+            
+        case SDL_KEYDOWN: {
+            parse_movement_key_down(crispy, event.key.keysym.sym);
+        } break;
+    }
+}
+
 int main(int argc, char **argv)
 {
     Chip8 crispy;
+    Mode current_mode = MENU;
+    Renderer smol("CrispyChip - CHIP8 Emulator");
+    Selector selector = create_selector(0, 0, RENDER_WIDTH_SCALED, RENDER_HEIGHT_SCALED / ARRAY_LEN(ROMS));
     
-    Selector selector = {0};
-    selector.rect.w = RENDER_WIDTH_SCALED;
-    selector.rect.h = (RENDER_HEIGHT_SCALED / ARRAY_LEN(ROMS));
-    
-    bool emulation = false;
     if (argc > 1) {
         crispy.initialize();
         
         if (crispy.load_rom(argv[1])) {
-            emulation = true;
-        } else {
-            exit(1);
+            current_mode = EMULATION;
         }
     }
-
-    Renderer smol("CrispyChip - CHIP8 Emulator");
     
+    SDL_Event event;
     bool should_quit = false;
+
     while (!should_quit) {
-        SDL_Event event;
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
                 case SDL_QUIT: {
@@ -81,61 +116,46 @@ int main(int argc, char **argv)
                 case SDL_KEYDOWN: {
                     switch (event.key.keysym.sym) {
                         case SDLK_ESCAPE: {
-                            if (!emulation) {
-                                should_quit = true;
-                            } else {
-                                emulation = false;
+                            switch (current_mode) {
+                                case MENU: should_quit = true; break;
+                                case EMULATION: current_mode = MENU; break;
                             }
                         } break;
 
-                        case SDLK_UP: {
-                            if (!emulation) {
-                                selector_move_up(&selector);
-                            }
-                        } break;
-                            
-                        case SDLK_DOWN: {
-                            if (!emulation) {
-                                selector_move_down(&selector);
-                            }
-                        } break;
-                            
                         case SDLK_RETURN: {
-                            if (!emulation) {
+                            // @Note: Yes, this could be inside handle_menu_events() function, however I think that would
+                            // ruin the simplicity of the function itself, besides this is a small project and a small little
+                            // thing that we know won't grow much so it's fine to just leave this little if in here.
+                            if (current_mode == MENU) {                                
                                 crispy.initialize();
                                 
                                 if (crispy.load_rom(ROMS[selector.index])) {
-                                    emulation = true;
+                                    current_mode = EMULATION;
                                 }
                             }
                         } break;
-                            
-                        default: {
-                            if (emulation) {
-                                parse_movement_key_down(&crispy, event.key.keysym.sym);
-                            }
-                        } break;
-                    }
-                } break;
-
-                case SDL_KEYUP: {
-                    if (emulation) {
-                        parse_movement_key_up(&crispy, event.key.keysym.sym);
                     }
                 } break;
             }
+
+            switch (current_mode) {
+                case MENU: handle_menu_events(&selector, event); break;
+                case EMULATION: handle_emulation_events(&crispy, event); break;
+            }
         }
 
-        if (emulation) {
-            smol.render_emulation(&crispy);
-        } else {
-            SDL_SetRenderDrawColor(smol.renderer, 0, 0, 0, 255);
-            SDL_RenderClear(smol.renderer);
-            
-            smol.render_selector(selector.rect);
-            smol.render_menu(selector.index, ROMS, ARRAY_LEN(ROMS));
+        switch (current_mode) {
+            case MENU: {
+                SDL_SetRenderDrawColor(smol.renderer, 0, 0, 0, 255);
+                SDL_RenderClear(smol.renderer);
+                
+                smol.render_selector(selector.rect);
+                smol.render_menu(selector.index, ROMS, ARRAY_LEN(ROMS));
+            } break;
+                
+            case EMULATION: smol.render_emulation(&crispy); break;
         }
-
+        
         SDL_RenderPresent(smol.renderer);
         SDL_Delay(1);
     }
