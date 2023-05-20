@@ -83,9 +83,9 @@ void Renderer::render_emulation(Chip8 *crispy)
     // @Note: `render` is set to true after initialization, so it will render at least once
     // in other words: it will clear the screen when first called.
     if (crispy->render) {
-        u32 pixelBuffer[CHIP8_DISPLAY];
+        u32 pixelBuffer[RENDER_WIDTH * RENDER_HEIGHT];
 
-        for (u32 i = 0; i < CHIP8_DISPLAY; ++i) {
+        for (u32 i = 0; i < RENDER_WIDTH * RENDER_HEIGHT; ++i) {
             if (crispy->display[i]) {
                 pixelBuffer[i] = 0xFFFFFFFF;
             } else {
