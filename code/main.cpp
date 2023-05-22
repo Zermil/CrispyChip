@@ -20,11 +20,10 @@ struct Selector {
     u32 index;
 };
 
-// @ToDo: Could probably add something like MEM_DEBUG mode or something
-// similar for fun?
+// @ToDo: Could probably add something like Mode_Debug or something similar for fun?
 enum Mode {
-    MENU = 0,
-    EMULATION,
+    Mode_Menu = 0,
+    Mode_Emulation,
 };
 
 internal void parse_movement_key_down(Chip8 *crispy, SDL_Keycode key);
@@ -91,7 +90,7 @@ internal void handle_emulation_events(Chip8 *crispy, SDL_Event event)
 int main(int argc, char **argv)
 {
     Chip8 crispy;
-    Mode current_mode = MENU;
+    Mode current_mode = Mode_Menu;
     Renderer smol("CrispyChip - CHIP8 Emulator");
     Selector selector = create_selector(0, 0, RENDER_WIDTH_SCALED, RENDER_HEIGHT_SCALED / ARRAY_LEN(ROMS));
     
@@ -99,7 +98,7 @@ int main(int argc, char **argv)
         crispy.initialize();
         
         if (crispy.load_rom(argv[1])) {
-            current_mode = EMULATION;
+            current_mode = Mode_Emulation;
         }
     }
     
@@ -117,8 +116,8 @@ int main(int argc, char **argv)
                     switch (event.key.keysym.sym) {
                         case SDLK_ESCAPE: {
                             switch (current_mode) {
-                                case MENU: should_quit = true; break;
-                                case EMULATION: current_mode = MENU; break;
+                                case Mode_Menu: should_quit = true; break;
+                                case Mode_Emulation: current_mode = Mode_Menu; break;
                             }
                         } break;
 
@@ -126,11 +125,11 @@ int main(int argc, char **argv)
                             // @Note: Yes, this could be inside handle_menu_events() function, however I think that would
                             // ruin the simplicity of the function itself, besides this is a small project and a small little
                             // thing that we know won't grow much so it's fine to just leave this little if in here.
-                            if (current_mode == MENU) {                                
+                            if (current_mode == Mode_Menu) {                                
                                 crispy.initialize();
                                 
                                 if (crispy.load_rom(ROMS[selector.index])) {
-                                    current_mode = EMULATION;
+                                    current_mode = Mode_Emulation;
                                 }
                             }
                         } break;
@@ -139,13 +138,13 @@ int main(int argc, char **argv)
             }
 
             switch (current_mode) {
-                case MENU: handle_menu_events(&selector, event); break;
-                case EMULATION: handle_emulation_events(&crispy, event); break;
+                case Mode_Menu: handle_menu_events(&selector, event); break;
+                case Mode_Emulation: handle_emulation_events(&crispy, event); break;
             }
         }
 
         switch (current_mode) {
-            case MENU: {
+            case Mode_Menu: {
                 SDL_SetRenderDrawColor(smol.renderer, 0, 0, 0, 255);
                 SDL_RenderClear(smol.renderer);
                 
@@ -153,7 +152,7 @@ int main(int argc, char **argv)
                 smol.render_menu(selector.index, ROMS, ARRAY_LEN(ROMS));
             } break;
                 
-            case EMULATION: smol.render_emulation(&crispy); break;
+            case Mode_Emulation: smol.render_emulation(&crispy); break;
         }
         
         SDL_RenderPresent(smol.renderer);
